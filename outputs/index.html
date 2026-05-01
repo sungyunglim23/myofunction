@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#0f172a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="MewFit" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+<title>MewFit — 뮤잉 코치</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg-2: #111827;
+    --surface: #1e293b;
+    --surface-2: #334155;
+    --border: #334155;
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --pink: #f472b6;
+    --gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+    --safe-top: env(safe-area-inset-top, 0);
+    --safe-bot: env(safe-area-inset-bottom, 0);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Pretendard',
+                 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+  #app {
+    display: flex; flex-direction: column;
+    height: 100vh; height: 100dvh;
+    max-width: 480px; margin: 0 auto;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bot);
+    background: linear-gradient(180deg, #0b1224 0%, var(--bg) 30%);
+  }
+  /* Header */
+  header.top {
+    padding: 14px 18px 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand-logo {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: var(--gradient);
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 14px; color: #0b1224;
+    box-shadow: 0 4px 12px rgba(56,189,248,0.3);
+  }
+  .brand-text { font-weight: 700; font-size: 17px; letter-spacing: -0.3px; }
+  .brand-text .sub { font-size: 11px; color: var(--text-dim); font-weight: 500; display: block; line-height: 1; margin-top: 2px;}
+  .lang-toggle {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  /* Main */
+  main {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    padding: 0 16px 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Bottom nav */
+  nav.bottom {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    background: rgba(15,23,42,0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    flex-shrink: 0;
+  }
+  nav.bottom button {
+    background: none; border: none; color: var(--text-muted);
+    padding: 10px 4px 12px; font-size: 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; font-family: inherit; font-weight: 600;
+  }
+  nav.bottom button.active { color: var(--accent); }
+  nav.bottom svg { width: 22px; height: 22px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card.gradient {
+    background: var(--gradient);
+    border-color: transparent;
+    color: #0b1224;
+  }
+  .card.gradient .stat-label { color: rgba(11,18,36,0.7); }
+  .card-title { font-size: 12px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .card.gradient .card-title { color: rgba(11,18,36,0.6); }
+  /* Stats */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 10px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 700; line-height: 1.1; }
+  .stat-label { font-size: 10px; color: var(--text-dim); margin-top: 4px; font-weight: 600;}
+  /* Today's plan */
+  .session-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; margin-bottom: 8px;
+    cursor: pointer; user-select: none;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .session-item:active { transform: scale(0.98); }
+  .session-item.done {
+    border-color: rgba(52,211,153,0.4);
+    background: rgba(52,211,153,0.08);
+  }
+  .session-item.done .session-time { color: var(--success); }
+  .session-time {
+    font-size: 18px; font-weight: 700; color: var(--accent);
+    min-width: 60px;
+  }
+  .session-info { flex: 1; }
+  .session-name { font-size: 14px; font-weight: 600; }
+  .session-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .session-check {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--border);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .session-item.done .session-check {
+    background: var(--success); border-color: var(--success);
+  }
+  .session-check svg { width: 16px; height: 16px; opacity: 0; }
+  .session-item.done .session-check svg { opacity: 1; }
+
+  /* Exercise list */
+  .ex-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ex-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px;
+    cursor: pointer; user-select: none;
+    transition: transform 0.15s ease;
+  }
+  .ex-card:active { transform: scale(0.97); }
+  .ex-icon-wrap {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));
+    border-radius: 10px;
+    display: grid; place-items: center;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .ex-card-name { font-size: 13px; font-weight: 700; }
+  .ex-card-name-en { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  /* Exercise screen */
+  .ex-screen {
+    display: flex; flex-direction: column;
+    height: 100%;
+  }
+  .ex-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 0 10px;
+  }
+  .icon-btn {
+    width: 36px; height: 36px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; display: grid; place-items: center;
+    cursor: pointer; padding: 0;
+    color: var(--text);
+  }
+  .ex-title { font-size: 17px; font-weight: 700; flex: 1; line-height: 1.2; }
+  .ex-title .en { font-size: 11px; color: var(--text-dim); font-weight: 500; display: block; }
+  .ex-anim-wrap {
+    background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 18px; padding: 18px;
+    aspect-ratio: 1.1;
+    display: grid; place-items: center;
+    margin-bottom: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  .ex-anim-wrap svg { width: 100%; height: 100%; }
+  .ex-step-counter {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+    border-radius: 999px; padding: 5px 11px;
+    font-size: 11px; font-weight: 600; color: var(--text-dim);
+  }
+
+  /* Timer */
+  .timer-card {
+    background: var(--surface); border-radius: 16px;
+    padding: 18px; text-align: center;
+    margin-bottom: 12px;
+  }
+  .timer-display {
+    font-size: 44px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .timer-label { font-size: 12px; color: var(--text-dim); font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;}
+  .progress-track { height: 6px; background: var(--surface-2); border-radius: 999px; margin: 14px 0 6px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--gradient); border-radius: 999px; transition: width 0.3s ease; }
+
+  /* Step instructions */
+  .step-list { display: flex; flex-direction: column; gap: 10px; }
+  .step-row {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+  .step-row.active {
+    border-color: var(--accent);
+    background: rgba(56,189,248,0.08);
+  }
+  .step-row.done .step-num { background: var(--success); color: #0b1224; }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--surface-2); color: var(--text);
+    font-size: 12px; font-weight: 700;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .step-row.active .step-num { background: var(--accent); color: #0b1224; }
+  .step-text { font-size: 13px; line-height: 1.5; }
+  .step-text .en { color: var(--text-dim); font-size: 11px; display: block; margin-top: 3px; }
+
+  /* Buttons */
+  .btn {
+    width: 100%; padding: 14px;
+    border: none; border-radius: 14px;
+    background: var(--gradient); color: #0b1224;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border);}
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  /* History calendar */
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 600;
+    background: var(--surface); color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .cal-day.l-1 { background: rgba(52,211,153,0.15); color: var(--success); border-color: rgba(52,211,153,0.3);}
+  .cal-day.l-2 { background: rgba(52,211,153,0.35); color: #0b1224;}
+  .cal-day.l-3 { background: rgba(52,211,153,0.55); color: #0b1224;}
+  .cal-day.l-4 { background: var(--success); color: #0b1224;}
+  .cal-day.today { outline: 2px solid var(--accent); outline-offset: -2px;}
+  .cal-head { font-size: 10px; color: var(--text-dim); text-align: center; padding: 6px 0; font-weight: 600; }
+
+  /* Settings */
+  .setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 8px;
+  }
+  .setting-row .label { font-size: 14px; font-weight: 600; }
+  .setting-row .desc { font-size: 11px; color: var(--text-dim); margin-top: 2px;}
+  .toggle {
+    width: 46px; height: 26px; border-radius: 999px;
+    background: var(--surface-2); position: relative; cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .toggle.on { background: var(--success); }
+  .toggle::after {
+    content: ''; position: absolute;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: white; top: 2px; left: 2px;
+    transition: left 0.2s ease;
+  }
+  .toggle.on::after { left: 22px; }
+  .time-pill {
+    padding: 6px 12px; font-size: 13px; font-weight: 700;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px;
+    color: var(--accent); font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  .time-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;}
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(40px);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 12px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    opacity: 0; transition: all 0.3s ease;
+    pointer-events: none; z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Modal */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+    display: none; place-items: center; padding: 20px;
+    z-index: 200;
+  }
+  .modal-bg.show { display: grid; }
+  .modal {
+    background: var(--surface); border-radius: 18px; padding: 22px;
+    max-width: 380px; width: 100%;
+    text-align: center;
+  }
+  .modal h3 { margin: 8px 0 6px; font-size: 18px; }
+  .modal p { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin: 0 0 16px; }
+  .modal-icon { font-size: 38px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Anim helpers */
+  @keyframes pulse-up {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  @keyframes squeeze {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.85); }
+  }
+  @keyframes flow-arrow {
+    0% { opacity: 0; transform: translateY(20px); }
+    50% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
+  @keyframes click-tap {
+    0%, 100% { transform: translateY(0); }
+    20% { transform: translateY(8px); }
+    25% { transform: translateY(7px); }
+  }
+  @keyframes lip-seal {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.4); }
+  }
+  @keyframes breathe-in-out {
+    0%, 100% { transform: scale(1); }
+    40% { transform: scale(1.18); }
+    60% { transform: scale(1.18); }
+  }
+  .pulse-up { animation: pulse-up 1.6s ease-in-out infinite; transform-origin: center; }
+  .squeeze { animation: squeeze 2s ease-in-out infinite; transform-origin: center bottom; }
+  .flow-arrow-1 { animation: flow-arrow 2s ease-in-out infinite; }
+  .flow-arrow-2 { animation: flow-arrow 2s ease-in-out infinite 0.66s; }
+  .flow-arrow-3 { animation: flow-arrow 2s ease-in-out infinite 1.33s; }
+  .click-tap { animation: click-tap 1.2s ease-in-out infinite; }
+  .lip-seal { animation: lip-seal 2.5s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  .breathe { animation: breathe-in-out 5s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+
+  .small { font-size: 11px; color: var(--text-dim); line-height: 1.5;}
+  .pad-bottom { padding-bottom: 24px;}
+  .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px;}
+  .badge {
+    display: inline-block; padding: 3px 8px;
+    background: rgba(56,189,248,0.15); color: var(--accent);
+    border-radius: 999px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge.warn { background: rgba(251,191,36,0.15); color: var(--warning); }
+  .badge.success { background: rgba(52,211,153,0.15); color: var(--success); }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-logo">M</div>
+      <div class="brand-text">MewFit<span class="sub" data-i18n="tagline">뮤잉 · 오픈바이트 코치</span></div>
+    </div>
+    <button class="lang-toggle" id="langToggle">한 / EN</button>
+  </header>
+
+  <main>
+    <!-- HOME VIEW -->
+    <section class="view active" id="view-home">
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-num" id="streakNum">0</div>
+          <div class="stat-label" data-i18n="streak">연속</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="todayDoneNum">0/6</div>
+          <div class="stat-label" data-i18n="today">오늘</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="totalSessionsNum">0</div>
+          <div class="stat-label" data-i18n="totalSessions">총 세션</div>
+        </div>
+      </div>
+
+      <div class="card gradient">
+        <div class="card-title" data-i18n="todayPlan">오늘의 운동</div>
+        <div id="todayList"></div>
+      </div>
+
+      <div class="row-between" style="margin: 14px 4px 8px;">
+        <div class="card-title" style="margin: 0;" data-i18n="exercises">운동 종류</div>
+        <span class="badge">6 routines</span>
+      </div>
+      <div class="ex-grid" id="exGrid"></div>
+
+      <div class="card" style="margin-top: 16px;">
+        <div class="card-title" data-i18n="howOften">권장 빈도</div>
+        <div style="font-size: 13px; line-height: 1.6;" data-i18n="howOftenBody">
+          하루 5–6세션, 2–3시간 간격으로 수행하세요. 한 세션은 약 5–8분이 소요됩니다.
+          연속 30일 이상 유지하면 첫 결과가 보이기 시작합니다 (Smithpeter & Covell, 2010).
+        </div>
+      </div>
+    </section>
+
+    <!-- EXERCISE VIEW -->
+    <section class="view" id="view-exercise">
+      <div class="ex-screen">
+        <div class="ex-header">
+          <button class="icon-btn" id="backBtn" aria-label="back">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="ex-title" id="exTitle">—</div>
+          <button class="icon-btn" id="infoBtn" aria-label="info">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </button>
+        </div>
+
+        <div class="ex-anim-wrap" id="exAnimWrap">
+          <div class="ex-step-counter" id="stepCounter">1 / 4</div>
+        </div>
+
+        <div class="timer-card">
+          <div class="timer-display" id="timerDisplay">00:00</div>
+          <div class="timer-label" id="timerLabel" data-i18n="ready">준비</div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+        </div>
+
+        <div class="step-list" id="stepList"></div>
+
+        <div style="margin-top: 14px;" class="pad-bottom">
+          <button class="btn" id="startBtn" data-i18n="start">시작</button>
+          <div class="btn-row" id="runningCtrls" style="display: none; margin-top: 8px;">
+            <button class="btn secondary" id="pauseBtn" data-i18n="pause">일시정지</button>
+            <button class="btn secondary" id="stopBtn" data-i18n="stop">중지</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY VIEW -->
+    <section class="view" id="view-history">
+      <div class="card">
+        <div class="row-between">
+          <div class="card-title" style="margin: 0;" data-i18n="last30">지난 30일</div>
+          <span id="last30Count" class="badge success">0 sessions</span>
+        </div>
+        <div class="cal-grid" style="margin-top: 12px;" id="calHead"></div>
+        <div class="cal-grid" style="margin-top: 4px;" id="calGrid"></div>
+        <div class="small" style="margin-top: 12px;" data-i18n="calLegend">
+          진한 색일수록 그날 더 많은 세션을 완료했다는 뜻입니다.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i18n="weeklyAvg">주간 평균</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+          <div>
+            <div style="font-size: 24px; font-weight: 700;" id="avgDaily">0.0</div>
+            <div class="small" data-i18n="avgPerDay">하루 평균 세션</div>
+          </div>
+          <div>
+            <div style="font-size: 24px; font-weight: 700;" id="adherence">0%</div>
+            <div class="small" data-i18n="adherenceRate">목표 달성률</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i18n="byExercise">운동별 진행</div>
+        <div id="byExerciseStats"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section class="view" id="view-settings">
+      <div class="card">
+        <div class="card-title" data-i18n="notifSettings">알림 설정</div>
+        <div class="setting-row">
+          <div>
+            <div class="label" data-i18n="enableNotif">알림 사용</div>
+            <div class="desc" data-i18n="enableNotifDesc">운동 시간에 푸시 알림을 받습니다</div>
+          </div>
+          <div class="toggle" id="notifToggle"></div>
+        </div>
+        <div style="margin-top: 8px;">
+          <div class="small" style="padding: 8px 4px;" data-i18n="reminderTimes">알림 시간 (탭하여 조정)</div>
+          <div class="time-pills" id="timePills"></div>
+        </div>
+        <button class="btn secondary" style="margin-top: 12px;" id="addTimeBtn" data-i18n="addTime">+ 시간 추가</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i18n="exportImport">데이터</div>
+        <div class="setting-row">
+          <div>
+            <div class="label" data-i18n="exportData">데이터 내보내기</div>
+            <div class="desc" data-i18n="exportDataDesc">기록을 JSON 파일로 저장</div>
+          </div>
+          <button class="icon-btn" id="exportBtn" aria-label="export">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="label" style="color: var(--danger);" data-i18n="resetData">기록 초기화</div>
+            <div class="desc" data-i18n="resetDataDesc">모든 진행 기록 삭제</div>
+          </div>
+          <button class="icon-btn" id="resetBtn" aria-label="reset" style="color: var(--danger);">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i18n="installGuide">아이폰 설치 안내</div>
+        <ol style="font-size: 13px; line-height: 1.7; padding-left: 20px; margin: 6px 0;" id="installSteps">
+        </ol>
+        <div class="small" style="margin-top: 8px; padding: 10px; background: rgba(56,189,248,0.08); border-radius: 8px; border: 1px solid rgba(56,189,248,0.2);" data-i18n="iosNote">
+          ℹ️ iOS 16.4+에서는 홈 화면에 추가된 PWA만 푸시 알림을 받을 수 있습니다.
+          알림이 작동하지 않으면 시스템 설정 → 알림에서 MewFit 알림을 켜주세요.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i18n="about">정보</div>
+        <div style="font-size: 12px; color: var(--text-dim); line-height: 1.6;" data-i18n="aboutBody">
+          MewFit은 Mike Mew의 orthotropics 프로토콜과 PubMed에 등재된 근기능치료(OMT) 연구를 기반으로 합니다.
+          본 앱은 교육 목적이며 의료 상담을 대체하지 않습니다. 시작 전 치과 전문의와 상담하세요.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom" id="bottomNav">
+    <button class="active" data-view="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/></svg>
+      <span data-i18n="home">홈</span>
+    </button>
+    <button data-view="exercise">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span data-i18n="exercise">운동</span>
+    </button>
+    <button data-view="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span data-i18n="history">기록</span>
+    </button>
+    <button data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span data-i18n="settings">설정</span>
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-icon" id="modalIcon">🎉</div>
+    <h3 id="modalTitle">잘하셨어요!</h3>
+    <p id="modalBody">한 세션을 완료했습니다.</p>
+    <button class="btn" id="modalClose" data-i18n="ok">확인</button>
+  </div>
+</div>
+
+<script>
+/* ============== I18N ============== */
+const I18N = {
+  ko: {
+    tagline: '뮤잉 · 오픈바이트 코치',
+    streak: '연속',
+    today: '오늘',
+    totalSessions: '총 세션',
+    todayPlan: '오늘의 운동',
+    exercises: '운동 종류',
+    howOften: '권장 빈도',
+    howOftenBody: '하루 5–6세션, 2–3시간 간격으로 수행하세요. 한 세션은 약 5–8분이 소요됩니다. 연속 30일 이상 유지하면 첫 결과가 보이기 시작합니다 (Smithpeter & Covell, 2010).',
+    home: '홈', exercise: '운동', history: '기록', settings: '설정',
+    ready: '준비', running: '진행 중', paused: '일시정지',
+    rest: '휴식', complete: '완료',
+    start: '시작', pause: '일시정지', stop: '중지', resume: '계속',
+    last30: '지난 30일', weeklyAvg: '주간 평균',
+    avgPerDay: '하루 평균 세션', adherenceRate: '목표 달성률',
+    byExercise: '운동별 진행',
+    calLegend: '진한 색일수록 그날 더 많은 세션을 완료했다는 뜻입니다.',
+    notifSettings: '알림 설정',
+    enableNotif: '알림 사용', enableNotifDesc: '운동 시간에 푸시 알림을 받습니다',
+    reminderTimes: '알림 시간 (탭하여 조정)', addTime: '+ 시간 추가',
+    exportImport: '데이터', exportData: '데이터 내보내기', exportDataDesc: '기록을 JSON 파일로 저장',
+    resetData: '기록 초기화', resetDataDesc: '모든 진행 기록 삭제',
+    installGuide: '아이폰 설치 안내',
+    iosNote: 'ℹ️ iOS 16.4+에서는 홈 화면에 추가된 PWA만 푸시 알림을 받을 수 있습니다. 알림이 작동하지 않으면 시스템 설정 → 알림에서 MewFit 알림을 켜주세요.',
+    about: '정보',
+    aboutBody: 'MewFit은 Mike Mew의 orthotropics 프로토콜과 PubMed에 등재된 근기능치료(OMT) 연구를 기반으로 합니다. 본 앱은 교육 목적이며 의료 상담을 대체하지 않습니다. 시작 전 치과 전문의와 상담하세요.',
+    ok: '확인',
+    sessionDone: '잘하셨어요!',
+    sessionDoneDesc: '한 세션을 완료했습니다. 다음 알림까지 휴식하세요.',
+    notifEnabled: '알림이 켜졌습니다',
+    notifDisabled: '알림이 꺼졌습니다',
+    notifBlocked: '브라우저에서 알림이 차단되어 있습니다',
+    notifTitle: '운동 시간이에요!',
+    notifBody: '뮤잉 운동을 1세션 진행해보세요.',
+    install1: 'Safari로 이 페이지를 엽니다.',
+    install2: '하단 (또는 상단) 공유 버튼을 누릅니다.',
+    install3: '"홈 화면에 추가" 를 선택합니다.',
+    install4: '추가 후 홈 화면의 MewFit 아이콘으로 실행하세요.',
+    install5: '첫 실행 시 알림 권한을 허용해주세요.',
+    confirmReset: '정말로 모든 기록을 삭제할까요?',
+    resetDone: '기록이 초기화되었습니다',
+    addTimeOK: '시간이 추가되었습니다',
+    pickTime: '시간 선택 (24시간)',
+  },
+  en: {
+    tagline: 'Mewing · Open Bite Coach',
+    streak: 'Streak', today: 'Today', totalSessions: 'Sessions',
+    todayPlan: "Today's Plan",
+    exercises: 'Exercises',
+    howOften: 'Recommended frequency',
+    howOftenBody: '5–6 sessions per day, 2–3 hours apart. Each session takes ~5–8 minutes. After 30 consecutive days, first results begin to appear (Smithpeter & Covell, 2010).',
+    home: 'Home', exercise: 'Train', history: 'History', settings: 'Settings',
+    ready: 'Ready', running: 'Running', paused: 'Paused',
+    rest: 'Rest', complete: 'Done',
+    start: 'Start', pause: 'Pause', stop: 'Stop', resume: 'Resume',
+    last30: 'Last 30 days', weeklyAvg: 'Weekly average',
+    avgPerDay: 'Avg sessions/day', adherenceRate: 'Adherence rate',
+    byExercise: 'By exercise',
+    calLegend: 'Darker = more sessions completed that day.',
+    notifSettings: 'Notification settings',
+    enableNotif: 'Enable reminders', enableNotifDesc: 'Get push reminders at training times',
+    reminderTimes: 'Reminder times (tap to adjust)', addTime: '+ Add time',
+    exportImport: 'Data', exportData: 'Export data', exportDataDesc: 'Save history as JSON',
+    resetData: 'Reset history', resetDataDesc: 'Delete all progress',
+    installGuide: 'iPhone install guide',
+    iosNote: 'ℹ️ iOS 16.4+ requires the PWA to be added to Home Screen for push notifications. If reminders fail, enable them in Settings → Notifications → MewFit.',
+    about: 'About',
+    aboutBody: 'MewFit is based on Mike Mew\u2019s orthotropics protocol and peer-reviewed myofunctional therapy (OMT) literature on PubMed. Educational only — does not replace dental advice. Consult your dentist first.',
+    ok: 'OK',
+    sessionDone: 'Great work!',
+    sessionDoneDesc: 'You completed a session. Rest until the next reminder.',
+    notifEnabled: 'Notifications enabled',
+    notifDisabled: 'Notifications disabled',
+    notifBlocked: 'Notifications are blocked by your browser',
+    notifTitle: 'Time to train!',
+    notifBody: 'Run a quick mewing session.',
+    install1: 'Open this page in Safari.',
+    install2: 'Tap the Share button (bottom or top of screen).',
+    install3: 'Choose "Add to Home Screen".',
+    install4: 'Open MewFit from your home screen.',
+    install5: 'Allow notification permission on first launch.',
+    confirmReset: 'Really delete all your history?',
+    resetDone: 'History cleared',
+    addTimeOK: 'Reminder time added',
+    pickTime: 'Pick time (24h)',
+  }
+};
+
+/* ============== EXERCISE DATA ============== */
+const EXERCISES = [
+  {
+    id: 'spot',
+    name_ko: '정자세',
+    name_en: 'Tongue Spot Posture',
+    icon_anim: () => svgPalateTongue({pulse:true, label:'정자세'}),
+    target_ko: '혀 휴식 위치',
+    target_en: 'Tongue resting posture',
+    intro_ko: '모든 뮤잉의 기초. 혀 전체를 입천장에 흡착시키는 자세를 학습합니다.',
+    intro_en: 'Foundation for all mewing. Suction the entire tongue against the palate.',
+    steps: [
+      {
+        ko: '입술을 다물고 어금니가 살짝 닿게 합니다.',
+        en: 'Seal lips, let molars lightly touch.',
+        duration: 6
+      },
+      {
+        ko: '혀끝을 윗앞니 1–2mm 뒤 잇몸 융기에 댑니다.',
+        en: 'Place tongue tip 1–2mm behind upper front teeth.',
+        duration: 6
+      },
+      {
+        ko: '혀의 중간·뒷부분까지 차례로 입천장에 흡착시킵니다.',
+        en: 'Suction middle then posterior third onto palate.',
+        duration: 8
+      },
+      {
+        ko: '코로 천천히 호흡하며 자세를 유지합니다 (10초).',
+        en: 'Hold for 10s, breathing through nose.',
+        duration: 10
+      },
+      {
+        ko: '한 번 이완하고 1단계부터 다시 반복 — 총 10회.',
+        en: 'Release, repeat from step 1 — 10 reps total.',
+        duration: 0
+      }
+    ],
+    rounds: 10,
+    rest: 3
+  },
+  {
+    id: '4s',
+    name_ko: '4S 삼킴',
+    name_en: '4S Swallow',
+    icon_anim: () => svgSwallow(),
+    target_ko: '연하 패턴 교정',
+    target_en: 'Swallowing pattern correction',
+    intro_ko: 'Spot–Salivate–Squeeze–Swallow. 혀밀기 삼킴을 정상 연하로 재교육합니다.',
+    intro_en: 'Spot–Salivate–Squeeze–Swallow. Re-train tongue thrust into mature swallow.',
+    steps: [
+      { ko: '혀를 정자세 위치에 둡니다 (Spot).', en: 'Place tongue on the spot.', duration: 4 },
+      { ko: '입을 다문 채 침을 모읍니다 (Salivate).', en: 'Pool saliva with mouth closed.', duration: 5 },
+      { ko: '혀 전체를 입천장에 강하게 압착합니다 (Squeeze).', en: 'Press the whole tongue firmly to the palate.', duration: 4 },
+      { ko: '혀가 앞니에 닿지 않은 채로 삼키고 3초간 압력 유지 (Swallow).', en: 'Swallow without touching front teeth, hold 3s.', duration: 5 },
+      { ko: '한 번 이완하고 다시 반복 — 1세션 6회.', en: 'Release and repeat — 6 reps per session.', duration: 0 }
+    ],
+    rounds: 6,
+    rest: 4
+  },
+  {
+    id: 'click',
+    name_ko: '혀 끝 클릭',
+    name_en: 'Tongue Click',
+    icon_anim: () => svgTongueClick(),
+    target_ko: '혀 끝 미세 조절',
+    target_en: 'Tongue tip fine motor control',
+    intro_ko: '혀 후방·중앙은 입천장에 붙은 채 끝부분만 떨어졌다 다시 흡착합니다.',
+    intro_en: 'Keep posterior tongue on palate; only the tip releases and re-suctions.',
+    steps: [
+      { ko: '정자세를 잡습니다 (혀 전체 입천장 흡착).', en: 'Establish tongue spot posture.', duration: 5 },
+      { ko: '혀끝만 1–2mm 떨어뜨립니다 (후방은 유지).', en: 'Release only the tip 1–2mm; posterior stays up.', duration: 3 },
+      { ko: '"딸깍" 소리를 내며 혀끝을 다시 흡착합니다.', en: 'Click tip back up to palate.', duration: 2 },
+      { ko: '리듬에 맞춰 10회 반복.', en: 'Repeat 10 clicks in rhythm.', duration: 12 },
+      { ko: '5초 휴식 후 다음 세트.', en: 'Rest 5s, next set.', duration: 0 }
+    ],
+    rounds: 3,
+    rest: 5
+  },
+  {
+    id: 'lipseal',
+    name_ko: '입술 봉합',
+    name_en: 'Lip Seal Hold',
+    icon_anim: () => svgLipSeal(),
+    target_ko: '입술 무력증 교정',
+    target_en: 'Orbicularis oris training',
+    intro_ko: '턱은 이완 상태로 입술끼리만 가볍게 다물어 유지합니다.',
+    intro_en: 'Relax jaw; close lips with light pressure and hold.',
+    steps: [
+      { ko: '턱과 안면 근육을 완전히 이완시킵니다.', en: 'Fully relax jaw & facial muscles.', duration: 4 },
+      { ko: '입술끼리만 부드럽게 다물어 봉합합니다.', en: 'Close lips gently — seal only.', duration: 3 },
+      { ko: '코로 호흡하며 15초간 유지합니다.', en: 'Hold for 15s with nasal breathing.', duration: 15 },
+      { ko: '5초 이완 후 반복 — 1세션 10회.', en: 'Relax 5s, repeat — 10 reps.', duration: 0 }
+    ],
+    rounds: 10,
+    rest: 5
+  },
+  {
+    id: 'suction',
+    name_ko: '혀 흡착 유지',
+    name_en: 'Suction Hold',
+    icon_anim: () => svgSuction(),
+    target_ko: '구개 흡착력 강화',
+    target_en: 'Palatal seal endurance',
+    intro_ko: '혀 전체를 입천장에 평평하게 붙이고 진공을 만들어 유지합니다.',
+    intro_en: 'Flatten the tongue against the palate and create suction.',
+    steps: [
+      { ko: '혀를 입천장에 평평하게 댑니다.', en: 'Flatten tongue onto the palate.', duration: 4 },
+      { ko: '공기를 빼내며 진공/흡착을 만듭니다.', en: 'Pull air out — create suction.', duration: 3 },
+      { ko: '20초간 흡착을 유지합니다.', en: 'Hold suction for 20s.', duration: 20 },
+      { ko: '풀고 5초 휴식 후 다음 세트.', en: 'Release, rest 5s, next set.', duration: 0 }
+    ],
+    rounds: 8,
+    rest: 5
+  },
+  {
+    id: 'breathe',
+    name_ko: '코호흡 4-2-4',
+    name_en: 'Nasal Breathing 4-2-4',
+    icon_anim: () => svgBreathe(),
+    target_ko: '코호흡 습관 정착',
+    target_en: 'Nasal breathing habit',
+    intro_ko: '코로만 4초 들이마시고, 2초 멈춘 뒤, 4초 내쉽니다. 입은 봉합 상태.',
+    intro_en: '4s inhale through nose · 2s hold · 4s exhale. Lips sealed throughout.',
+    steps: [
+      { ko: '코로 4초간 천천히 들이마십니다.', en: 'Inhale through nose for 4s.', duration: 4 },
+      { ko: '2초 정지합니다 (입 봉합 유지).', en: 'Hold breath for 2s (lips sealed).', duration: 2 },
+      { ko: '코로 4초간 천천히 내쉽니다.', en: 'Exhale through nose for 4s.', duration: 4 },
+      { ko: '같은 리듬으로 10주기 반복.', en: 'Repeat 10 cycles.', duration: 0 }
+    ],
+    rounds: 10,
+    rest: 0
+  }
+];
+
+/* ============== SVG ANIMATIONS ============== */
+function svgBase(content) {
+  return `<svg viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="lg-skin" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#fde7c9"/><stop offset="1" stop-color="#f4c89e"/>
+      </linearGradient>
+      <linearGradient id="lg-tongue" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#fb7185"/><stop offset="1" stop-color="#be123c"/>
+      </linearGradient>
+      <linearGradient id="lg-arrow" x1="0" x2="0" y1="1" y2="0">
+        <stop offset="0" stop-color="#38bdf8" stop-opacity="0"/>
+        <stop offset="1" stop-color="#38bdf8"/>
+      </linearGradient>
+    </defs>
+    ${content}
+  </svg>`;
+}
+
+// Side-profile head with palate, tongue suction, pressure arrows
+function svgPalateTongue({pulse=false, label=''}={}) {
+  // Side profile of skull/face
+  return svgBase(`
+    <!-- skull side profile -->
+    <path d="M 30 90 Q 30 40 80 30 Q 130 25 160 50 Q 175 70 165 95 L 160 110 L 155 120 L 130 130 Q 110 138 95 128 L 80 125 Q 40 115 30 90 Z"
+          fill="url(#lg-skin)" stroke="#d4a574" stroke-width="1"/>
+    <!-- nose -->
+    <path d="M 165 80 Q 175 85 172 92 Q 168 95 162 92" fill="#f4c89e" stroke="#d4a574" stroke-width="0.8"/>
+    <!-- eye -->
+    <ellipse cx="135" cy="65" rx="6" ry="3" fill="#1e293b"/>
+    <!-- mouth opening (cutaway) -->
+    <path d="M 70 110 L 150 105 L 155 130 L 75 130 Z" fill="#0b1224" opacity="0.85"/>
+    <!-- hard palate (top of mouth) -->
+    <path d="M 75 110 Q 110 102 150 108" fill="none" stroke="#fde7c9" stroke-width="3" stroke-linecap="round"/>
+    <!-- upper teeth -->
+    <g fill="#f8fafc">
+      <rect x="80" y="110" width="6" height="6" rx="1"/>
+      <rect x="89" y="110" width="6" height="6" rx="1"/>
+      <rect x="98" y="110" width="6" height="6" rx="1"/>
+      <rect x="107" y="110" width="6" height="6" rx="1"/>
+      <rect x="116" y="110" width="6" height="6" rx="1"/>
+      <rect x="125" y="110" width="6" height="6" rx="1"/>
+      <rect x="134" y="110" width="6" height="6" rx="1"/>
+    </g>
+    <!-- lower teeth -->
+    <g fill="#f8fafc">
+      <rect x="80" y="125" width="6" height="5" rx="1"/>
+      <rect x="89" y="125" width="6" height="5" rx="1"/>
+      <rect x="98" y="125" width="6" height="5" rx="1"/>
+      <rect x="107" y="125" width="6" height="5" rx="1"/>
+      <rect x="116" y="125" width="6" height="5" rx="1"/>
+      <rect x="125" y="125" width="6" height="5" rx="1"/>
+      <rect x="134" y="125" width="6" height="5" rx="1"/>
+    </g>
+    <!-- tongue suctioned to palate -->
+    <g class="${pulse ? 'pulse-up' : ''}">
+      <path d="M 80 116 Q 110 110 145 112 Q 152 118 148 124 Q 130 128 110 127 Q 90 126 80 122 Z"
+            fill="url(#lg-tongue)" stroke="#9f1239" stroke-width="0.5"/>
+    </g>
+    <!-- pressure arrows up -->
+    <g stroke="#38bdf8" stroke-width="2" fill="none" stroke-linecap="round">
+      <path class="flow-arrow-1" d="M 95 122 L 95 105 M 90 110 L 95 105 L 100 110"/>
+      <path class="flow-arrow-2" d="M 115 122 L 115 105 M 110 110 L 115 105 L 120 110"/>
+      <path class="flow-arrow-3" d="M 135 122 L 135 105 M 130 110 L 135 105 L 140 110"/>
+    </g>
+    <!-- label -->
+    <text x="100" y="165" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600" font-family="-apple-system, sans-serif">${label}</text>
+  `);
+}
+
+function svgSwallow() {
+  return svgBase(`
+    <path d="M 30 90 Q 30 40 80 30 Q 130 25 160 50 Q 175 70 165 95 L 160 110 L 155 120 L 130 130 Q 110 138 95 128 L 80 125 Q 40 115 30 90 Z"
+          fill="url(#lg-skin)" stroke="#d4a574" stroke-width="1"/>
+    <ellipse cx="135" cy="65" rx="6" ry="3" fill="#1e293b"/>
+    <path d="M 70 110 L 150 105 L 155 130 L 75 130 Z" fill="#0b1224" opacity="0.85"/>
+    <path d="M 75 110 Q 110 102 150 108" fill="none" stroke="#fde7c9" stroke-width="3" stroke-linecap="round"/>
+    <g class="squeeze">
+      <path d="M 80 116 Q 110 110 145 112 Q 152 118 148 124 Q 130 128 110 127 Q 90 126 80 122 Z"
+            fill="url(#lg-tongue)"/>
+    </g>
+    <!-- Throat / pharynx swallow indicator -->
+    <g fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round">
+      <path class="flow-arrow-1" d="M 60 100 Q 50 110 50 125 M 45 120 L 50 125 L 55 120"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600">4S Swallow</text>
+  `);
+}
+
+function svgTongueClick() {
+  return svgBase(`
+    <path d="M 30 90 Q 30 40 80 30 Q 130 25 160 50 Q 175 70 165 95 L 160 110 L 155 120 L 130 130 Q 110 138 95 128 L 80 125 Q 40 115 30 90 Z"
+          fill="url(#lg-skin)" stroke="#d4a574" stroke-width="1"/>
+    <ellipse cx="135" cy="65" rx="6" ry="3" fill="#1e293b"/>
+    <path d="M 70 110 L 150 105 L 155 130 L 75 130 Z" fill="#0b1224" opacity="0.85"/>
+    <path d="M 75 110 Q 110 102 150 108" fill="none" stroke="#fde7c9" stroke-width="3" stroke-linecap="round"/>
+    <!-- Tongue body (stays up) -->
+    <path d="M 95 116 Q 115 110 145 112 Q 152 118 148 124 Q 125 127 110 126 Z"
+          fill="url(#lg-tongue)"/>
+    <!-- Tongue tip (clicks) -->
+    <g class="click-tap">
+      <ellipse cx="85" cy="115" rx="10" ry="5" fill="url(#lg-tongue)"/>
+    </g>
+    <!-- click sound waves -->
+    <g fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.7">
+      <circle class="flow-arrow-1" cx="55" cy="115" r="6"/>
+      <circle class="flow-arrow-2" cx="50" cy="115" r="10"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600">Click · 딸깍</text>
+  `);
+}
+
+function svgLipSeal() {
+  return svgBase(`
+    <!-- frontal lips view -->
+    <ellipse cx="100" cy="90" rx="80" ry="55" fill="#fde7c9"/>
+    <!-- nostrils -->
+    <ellipse cx="88" cy="55" rx="3" ry="5" fill="#9f1239" opacity="0.4"/>
+    <ellipse cx="112" cy="55" rx="3" ry="5" fill="#9f1239" opacity="0.4"/>
+    <!-- nose bridge -->
+    <path d="M 100 40 Q 95 65 92 75 Q 100 78 108 75 Q 105 65 100 40" fill="none" stroke="#d4a574" stroke-width="1"/>
+    <!-- upper lip -->
+    <g class="lip-seal">
+      <path d="M 60 100 Q 80 92 100 96 Q 120 92 140 100 Q 130 105 100 105 Q 70 105 60 100 Z"
+            fill="#f472b6"/>
+      <path d="M 60 105 Q 80 115 100 110 Q 120 115 140 105 Q 130 113 100 115 Q 70 113 60 105 Z"
+            fill="#ec4899"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600">입술 봉합 · Seal</text>
+  `);
+}
+
+function svgSuction() {
+  return svgBase(`
+    <path d="M 30 90 Q 30 40 80 30 Q 130 25 160 50 Q 175 70 165 95 L 160 110 L 155 120 L 130 130 Q 110 138 95 128 L 80 125 Q 40 115 30 90 Z"
+          fill="url(#lg-skin)" stroke="#d4a574" stroke-width="1"/>
+    <ellipse cx="135" cy="65" rx="6" ry="3" fill="#1e293b"/>
+    <path d="M 70 110 L 150 105 L 155 130 L 75 130 Z" fill="#0b1224" opacity="0.85"/>
+    <path d="M 75 110 Q 110 102 150 108" fill="none" stroke="#fde7c9" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 80 115 Q 110 110 145 113 Q 150 117 148 122 Q 130 124 110 124 Q 90 122 80 120 Z"
+          fill="url(#lg-tongue)"/>
+    <!-- vacuum/suction lines -->
+    <g stroke="#38bdf8" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.85">
+      <path class="flow-arrow-1" d="M 90 124 L 90 113"/>
+      <path class="flow-arrow-2" d="M 110 124 L 110 113"/>
+      <path class="flow-arrow-3" d="M 130 124 L 130 113"/>
+      <path class="flow-arrow-1" d="M 100 124 L 100 113"/>
+      <path class="flow-arrow-2" d="M 120 124 L 120 113"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600">Suction Hold</text>
+  `);
+}
+
+function svgBreathe() {
+  return svgBase(`
+    <!-- nose with breath flow -->
+    <path d="M 30 90 Q 30 40 80 30 Q 130 25 160 50 Q 175 70 165 95 L 160 110 L 155 120 L 130 130 Q 110 138 95 128 L 80 125 Q 40 115 30 90 Z"
+          fill="url(#lg-skin)" stroke="#d4a574" stroke-width="1"/>
+    <ellipse cx="135" cy="65" rx="6" ry="3" fill="#1e293b"/>
+    <!-- nose region with nostrils -->
+    <ellipse cx="170" cy="92" rx="3" ry="2" fill="#9f1239" opacity="0.5"/>
+    <!-- closed mouth -->
+    <path d="M 130 125 Q 110 128 90 124" fill="none" stroke="#be123c" stroke-width="2" stroke-linecap="round"/>
+    <!-- breath flow -->
+    <g fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" opacity="0.85">
+      <path class="flow-arrow-1" d="M 185 80 Q 195 88 188 95"/>
+      <path class="flow-arrow-2" d="M 192 75 Q 200 85 195 95"/>
+    </g>
+    <!-- diaphragm circle -->
+    <g class="breathe">
+      <circle cx="100" cy="155" r="18" fill="rgba(56,189,248,0.15)" stroke="#38bdf8" stroke-width="1.5"/>
+    </g>
+    <text x="100" y="178" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">코호흡 4·2·4</text>
+  `);
+}
+
+/* ============== STATE / STORAGE ============== */
+const STORAGE_KEY = 'mewfit-v1';
+const defaultState = () => ({
+  lang: 'ko',
+  notif: false,
+  reminderTimes: ['08:00', '11:00', '14:00', '17:00', '20:00', '22:30'],
+  history: {} // { 'YYYY-MM-DD': { exId: count, ... } }
+});
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return { ...defaultState(), ...parsed };
+  } catch { return defaultState(); }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+let state = loadState();
+
+/* ============== I18N HELPERS ============== */
+function t(key) { return I18N[state.lang][key] || I18N.ko[key] || key; }
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[state.lang][key] !== undefined) el.textContent = I18N[state.lang][key];
+  });
+  document.documentElement.lang = state.lang;
+}
+
+/* ============== UTILS ============== */
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function todaySessions() {
+  const t = state.history[todayKey()] || {};
+  return Object.values(t).reduce((a,b)=>a+b, 0);
+}
+function totalSessions() {
+  let total = 0;
+  for (const day of Object.values(state.history)) {
+    for (const c of Object.values(day)) total += c;
+  }
+  return total;
+}
+function calcStreak() {
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const key = dateKey(d);
+    const day = state.history[key];
+    const total = day ? Object.values(day).reduce((a,b)=>a+b,0) : 0;
+    if (total > 0) streak++;
+    else if (i === 0) continue; // today not yet done is okay
+    else break;
+  }
+  return streak;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function showModal(icon, title, body) {
+  document.getElementById('modalIcon').textContent = icon;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').textContent = body;
+  document.getElementById('modal').classList.add('show');
+}
+
+/* ============== VIEWS ============== */
+function setView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('#bottomNav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === name);
+  });
+  if (name === 'home') renderHome();
+  if (name === 'history') renderHistory();
+  if (name === 'settings') renderSettings();
+}
+
+/* ============== HOME ============== */
+function renderHome() {
+  document.getElementById('streakNum').textContent = calcStreak();
+  document.getElementById('todayDoneNum').textContent = `${todaySessions()}/${state.reminderTimes.length}`;
+  document.getElementById('totalSessionsNum').textContent = totalSessions();
+
+  // Today list (one row per scheduled time)
+  const list = document.getElementById('todayList');
+  list.innerHTML = '';
+  const todayKey_ = todayKey();
+  const todayCount = state.history[todayKey_] ? Object.values(state.history[todayKey_]).reduce((a,b)=>a+b,0) : 0;
+  state.reminderTimes.forEach((time, idx) => {
+    const done = idx < todayCount;
+    const ex = EXERCISES[idx % EXERCISES.length];
+    const div = document.createElement('div');
+    div.className = 'session-item' + (done ? ' done' : '');
+    div.innerHTML = `
+      <div class="session-time">${time}</div>
+      <div class="session-info">
+        <div class="session-name">${state.lang === 'ko' ? ex.name_ko : ex.name_en}</div>
+        <div class="session-desc">${state.lang === 'ko' ? ex.target_ko : ex.target_en}</div>
+      </div>
+      <div class="session-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0b1224" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    `;
+    div.addEventListener('click', () => {
+      currentExIdx = idx % EXERCISES.length;
+      openExercise(ex);
+    });
+    list.appendChild(div);
+  });
+
+  // Exercise grid
+  const grid = document.getElementById('exGrid');
+  grid.innerHTML = '';
+  EXERCISES.forEach((ex, idx) => {
+    const c = document.createElement('div');
+    c.className = 'ex-card';
+    c.innerHTML = `
+      <div class="ex-icon-wrap">${ex.icon_anim()}</div>
+      <div class="ex-card-name">${state.lang === 'ko' ? ex.name_ko : ex.name_en}</div>
+      <div class="ex-card-name-en">${state.lang === 'ko' ? ex.name_en : ex.name_ko}</div>
+    `;
+    c.addEventListener('click', () => {
+      currentExIdx = idx;
+      openExercise(ex);
+    });
+    grid.appendChild(c);
+  });
+}
+
+/* ============== EXERCISE ============== */
+let currentEx = null;
+let currentExIdx = 0;
+let timer = null;
+let stepIndex = 0;
+let stepRemaining = 0;
+let roundIndex = 0;
+let isPaused = false;
+let isRunning = false;
+
+function openExercise(ex) {
+  currentEx = ex;
+  isRunning = false;
+  isPaused = false;
+  stepIndex = 0;
+  roundIndex = 0;
+  stepRemaining = 0;
+  setView('exercise');
+  document.querySelectorAll('#bottomNav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === 'exercise');
+  });
+
+  document.getElementById('exTitle').innerHTML = `${state.lang === 'ko' ? ex.name_ko : ex.name_en}<span class="en">${state.lang === 'ko' ? ex.name_en : ex.name_ko} · ${state.lang === 'ko' ? ex.target_ko : ex.target_en}</span>`;
+  document.getElementById('exAnimWrap').innerHTML = `<div class="ex-step-counter" id="stepCounter">1 / ${ex.steps.length}</div>` + ex.icon_anim();
+  document.getElementById('timerDisplay').textContent = '00:00';
+  document.getElementById('timerLabel').textContent = t('ready');
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('startBtn').style.display = '';
+  document.getElementById('startBtn').textContent = t('start');
+  document.getElementById('runningCtrls').style.display = 'none';
+
+  // Render steps
+  const list = document.getElementById('stepList');
+  list.innerHTML = '';
+  ex.steps.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'step-row';
+    row.dataset.idx = i;
+    row.innerHTML = `<div class="step-num">${i+1}</div>
+      <div class="step-text">${state.lang === 'ko' ? s.ko : s.en}<span class="en">${state.lang === 'ko' ? s.en : s.ko}</span></div>`;
+    list.appendChild(row);
+  });
+}
+
+function startRoutine() {
+  if (!currentEx) return;
+  isRunning = true;
+  isPaused = false;
+  roundIndex = 0;
+  stepIndex = 0;
+  document.getElementById('startBtn').style.display = 'none';
+  document.getElementById('runningCtrls').style.display = '';
+  runStep();
+}
+
+function runStep() {
+  if (!isRunning || isPaused) return;
+  const steps = currentEx.steps;
+  // Filter steps: ones with duration > 0 are timed
+  if (stepIndex >= steps.length) {
+    // Round completed
+    roundIndex++;
+    if (roundIndex >= currentEx.rounds) {
+      finishRoutine();
+      return;
+    }
+    // Rest then next round
+    stepIndex = 0;
+    if (currentEx.rest > 0) {
+      enterRest(currentEx.rest);
+      return;
+    }
+  }
+  const s = steps[stepIndex];
+  // Skip 0-duration step (it's the "loop / repeat" instruction)
+  if (!s || s.duration === 0) {
+    stepIndex++;
+    return runStep();
+  }
+  stepRemaining = s.duration;
+  highlightStep(stepIndex);
+  document.getElementById('stepCounter').textContent = `${stepIndex+1} / ${steps.length} · ${roundIndex+1}/${currentEx.rounds}`;
+  document.getElementById('timerLabel').textContent = `${t('running')} · ${roundIndex+1}/${currentEx.rounds}`;
+  tick();
+}
+
+function tick() {
+  if (!isRunning || isPaused) return;
+  updateTimerDisplay(stepRemaining);
+  const total = currentEx.steps[stepIndex].duration;
+  const elapsed = total - stepRemaining;
+  document.getElementById('progressFill').style.width = ((elapsed/total)*100) + '%';
+  if (stepRemaining <= 0) {
+    // mark step done
+    const row = document.querySelector(`.step-row[data-idx="${stepIndex}"]`);
+    if (row) { row.classList.add('done'); row.classList.remove('active'); }
+    stepIndex++;
+    runStep();
+    return;
+  }
+  timer = setTimeout(() => {
+    stepRemaining--;
+    tick();
+  }, 1000);
+}
+
+function enterRest(seconds) {
+  document.getElementById('timerLabel').textContent = t('rest');
+  let r = seconds;
+  const restTick = () => {
+    if (!isRunning || isPaused) return;
+    updateTimerDisplay(r);
+    document.getElementById('progressFill').style.width = (((seconds-r)/seconds)*100) + '%';
+    if (r <= 0) {
+      // clear step highlights
+      document.querySelectorAll('.step-row').forEach(s => s.classList.remove('done','active'));
+      runStep();
+      return;
+    }
+    timer = setTimeout(() => { r--; restTick(); }, 1000);
+  };
+  restTick();
+}
+
+function highlightStep(idx) {
+  document.querySelectorAll('.step-row').forEach(r => r.classList.remove('active'));
+  const row = document.querySelector(`.step-row[data-idx="${idx}"]`);
+  if (row) row.classList.add('active');
+}
+
+function updateTimerDisplay(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function pauseRoutine() {
+  if (!isRunning) return;
+  if (isPaused) {
+    isPaused = false;
+    document.getElementById('pauseBtn').textContent = t('pause');
+    document.getElementById('timerLabel').textContent = t('running');
+    tick();
+  } else {
+    isPaused = true;
+    document.getElementById('pauseBtn').textContent = t('resume');
+    document.getElementById('timerLabel').textContent = t('paused');
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function stopRoutine() {
+  isRunning = false; isPaused = false;
+  if (timer) clearTimeout(timer);
+  document.getElementById('startBtn').style.display = '';
+  document.getElementById('runningCtrls').style.display = 'none';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('timerLabel').textContent = t('ready');
+  document.getElementById('timerDisplay').textContent = '00:00';
+  document.querySelectorAll('.step-row').forEach(s => s.classList.remove('done','active'));
+}
+
+function finishRoutine() {
+  isRunning = false;
+  if (timer) clearTimeout(timer);
+  // Record
+  const key = todayKey();
+  if (!state.history[key]) state.history[key] = {};
+  state.history[key][currentEx.id] = (state.history[key][currentEx.id] || 0) + 1;
+  saveState();
+  // Vibrate + modal
+  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+  showModal('🎉', t('sessionDone'), t('sessionDoneDesc'));
+  document.getElementById('startBtn').style.display = '';
+  document.getElementById('runningCtrls').style.display = 'none';
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('timerLabel').textContent = t('complete');
+}
+
+/* ============== HISTORY ============== */
+function renderHistory() {
+  // Calendar header (Mon-Sun)
+  const head = document.getElementById('calHead');
+  const days_ko = ['일','월','화','수','목','금','토'];
+  const days_en = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  head.innerHTML = (state.lang === 'ko' ? days_ko : days_en).map(d => `<div class="cal-head">${d}</div>`).join('');
+
+  // Build last ~35 days grid (rows align so today is in last row)
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  // Find Sunday of the week containing today
+  const todayDow = today.getDay();
+  const lastSun = new Date(today); lastSun.setDate(today.getDate() - todayDow);
+  // Show 6 weeks ending the week of today (Sat as last day of last row)
+  const lastSat = new Date(lastSun); lastSat.setDate(lastSun.getDate() + 6);
+  const start = new Date(lastSat); start.setDate(lastSat.getDate() - 41);
+  const cells = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    cells.push(d);
+  }
+  let last30Count = 0;
+  let dayCounts = [];
+  cells.forEach(d => {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day';
+    const key = dateKey(d);
+    const day = state.history[key];
+    const count = day ? Object.values(day).reduce((a,b)=>a+b,0) : 0;
+    cell.textContent = d.getDate();
+    if (count > 0) {
+      const lvl = Math.min(4, Math.ceil(count / 1.5));
+      cell.classList.add('l-' + lvl);
+    }
+    if (d.getTime() === today.getTime()) cell.classList.add('today');
+    if (d > today) cell.style.opacity = '0.25';
+    grid.appendChild(cell);
+    if (d <= today && (today - d) / (1000*60*60*24) <= 30) {
+      last30Count += count;
+      dayCounts.push(count);
+    }
+  });
+  document.getElementById('last30Count').textContent = `${last30Count} sessions`;
+  const avg = (dayCounts.reduce((a,b)=>a+b,0) / Math.max(1, dayCounts.length)).toFixed(1);
+  document.getElementById('avgDaily').textContent = avg;
+  const goal = state.reminderTimes.length;
+  const adh = Math.round((avg / goal) * 100);
+  document.getElementById('adherence').textContent = adh + '%';
+
+  // By exercise stats
+  const byEx = {};
+  for (const day of Object.values(state.history)) {
+    for (const [k, v] of Object.entries(day)) {
+      byEx[k] = (byEx[k] || 0) + v;
+    }
+  }
+  const stats = document.getElementById('byExerciseStats');
+  stats.innerHTML = '';
+  EXERCISES.forEach(ex => {
+    const total = byEx[ex.id] || 0;
+    const max = Math.max(1, ...Object.values(byEx));
+    const pct = (total / max) * 100;
+    const row = document.createElement('div');
+    row.style.cssText = 'margin: 8px 0;';
+    row.innerHTML = `
+      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+        <span style="font-weight: 600;">${state.lang === 'ko' ? ex.name_ko : ex.name_en}</span>
+        <span style="color: var(--text-dim); font-variant-numeric: tabular-nums;">${total}</span>
+      </div>
+      <div class="progress-track" style="margin: 0;"><div class="progress-fill" style="width: ${pct}%;"></div></div>
+    `;
+    stats.appendChild(row);
+  });
+}
+
+/* ============== SETTINGS ============== */
+function renderSettings() {
+  // Notif toggle
+  document.getElementById('notifToggle').classList.toggle('on', state.notif);
+  // Times
+  const wrap = document.getElementById('timePills');
+  wrap.innerHTML = '';
+  state.reminderTimes.sort();
+  state.reminderTimes.forEach((time, idx) => {
+    const pill = document.createElement('button');
+    pill.className = 'time-pill';
+    pill.textContent = time;
+    pill.addEventListener('click', () => editTime(idx));
+    pill.addEventListener('contextmenu', (e) => { e.preventDefault(); deleteTime(idx); });
+    pill.addEventListener('dblclick', () => deleteTime(idx));
+    wrap.appendChild(pill);
+  });
+  // Install steps
+  const steps = document.getElementById('installSteps');
+  steps.innerHTML = '';
+  ['install1','install2','install3','install4','install5'].forEach(k => {
+    const li = document.createElement('li');
+    li.textContent = t(k);
+    steps.appendChild(li);
+  });
+}
+
+function editTime(idx) {
+  const cur = state.reminderTimes[idx];
+  const inp = document.createElement('input');
+  inp.type = 'time'; inp.value = cur;
+  inp.style.cssText = 'position: absolute; opacity: 0; pointer-events: none;';
+  document.body.appendChild(inp);
+  inp.addEventListener('change', () => {
+    if (inp.value) {
+      state.reminderTimes[idx] = inp.value;
+      saveState();
+      renderSettings();
+      reschedule();
+    }
+    inp.remove();
+  });
+  inp.click();
+  setTimeout(() => inp.focus(), 100);
+}
+
+function deleteTime(idx) {
+  if (state.reminderTimes.length <= 1) return;
+  if (confirm(state.lang === 'ko' ? '이 알림 시간을 삭제할까요?' : 'Delete this reminder time?')) {
+    state.reminderTimes.splice(idx, 1);
+    saveState();
+    renderSettings();
+    reschedule();
+  }
+}
+
+function addTime() {
+  const inp = document.createElement('input');
+  inp.type = 'time'; inp.value = '12:00';
+  inp.style.cssText = 'position: absolute; opacity: 0; pointer-events: none;';
+  document.body.appendChild(inp);
+  inp.addEventListener('change', () => {
+    if (inp.value && !state.reminderTimes.includes(inp.value)) {
+      state.reminderTimes.push(inp.value);
+      state.reminderTimes.sort();
+      saveState();
+      renderSettings();
+      reschedule();
+      showToast(t('addTimeOK'));
+    }
+    inp.remove();
+  });
+  inp.click();
+  setTimeout(() => inp.focus(), 100);
+}
+
+/* ============== NOTIFICATIONS ============== */
+let scheduledTimers = [];
+
+function reschedule() {
+  scheduledTimers.forEach(t => clearTimeout(t));
+  scheduledTimers = [];
+  if (!state.notif) return;
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  const now = new Date();
+  state.reminderTimes.forEach(time => {
+    const [h, m] = time.split(':').map(Number);
+    const target = new Date(now);
+    target.setHours(h, m, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+    const ms = target - now;
+    const id = setTimeout(() => fireNotif(), ms);
+    scheduledTimers.push(id);
+  });
+}
+
+function fireNotif() {
+  try {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'show-notification',
+        title: t('notifTitle'),
+        body: t('notifBody'),
+      });
+    } else if (Notification.permission === 'granted') {
+      new Notification(t('notifTitle'), { body: t('notifBody'), icon: 'icon-192.png' });
+    }
+  } catch (e) {}
+  // Reschedule for tomorrow
+  setTimeout(reschedule, 2000);
+}
+
+async function toggleNotif() {
+  if (state.notif) {
+    state.notif = false;
+    saveState();
+    renderSettings();
+    reschedule();
+    showToast(t('notifDisabled'));
+  } else {
+    if (typeof Notification === 'undefined') {
+      showToast(t('notifBlocked'));
+      return;
+    }
+    let perm = Notification.permission;
+    if (perm === 'default') perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      showToast(t('notifBlocked'));
+      return;
+    }
+    state.notif = true;
+    saveState();
+    renderSettings();
+    reschedule();
+    showToast(t('notifEnabled'));
+  }
+}
+
+/* ============== EXPORT / RESET ============== */
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `mewfit-${todayKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetData() {
+  if (!confirm(t('confirmReset'))) return;
+  state = defaultState();
+  saveState();
+  renderSettings();
+  renderHome();
+  showToast(t('resetDone'));
+}
+
+/* ============== EVENT BINDINGS ============== */
+document.getElementById('langToggle').addEventListener('click', () => {
+  state.lang = state.lang === 'ko' ? 'en' : 'ko';
+  saveState();
+  applyI18n();
+  renderHome();
+  if (currentEx) {
+    document.getElementById('exTitle').innerHTML = `${state.lang === 'ko' ? currentEx.name_ko : currentEx.name_en}<span class="en">${state.lang === 'ko' ? currentEx.name_en : currentEx.name_ko}</span>`;
+  }
+});
+document.getElementById('bottomNav').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-view]');
+  if (btn) setView(btn.dataset.view);
+});
+document.getElementById('backBtn').addEventListener('click', () => setView('home'));
+document.getElementById('infoBtn').addEventListener('click', () => {
+  if (!currentEx) return;
+  showModal('💡', state.lang === 'ko' ? currentEx.name_ko : currentEx.name_en, state.lang === 'ko' ? currentEx.intro_ko : currentEx.intro_en);
+});
+document.getElementById('startBtn').addEventListener('click', startRoutine);
+document.getElementById('pauseBtn').addEventListener('click', pauseRoutine);
+document.getElementById('stopBtn').addEventListener('click', stopRoutine);
+document.getElementById('modalClose').addEventListener('click', () => {
+  document.getElementById('modal').classList.remove('show');
+  setView('home');
+});
+document.getElementById('notifToggle').addEventListener('click', toggleNotif);
+document.getElementById('addTimeBtn').addEventListener('click', addTime);
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('resetBtn').addEventListener('click', resetData);
+
+/* ============== SW REGISTER ============== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+/* ============== INIT ============== */
+applyI18n();
+renderHome();
+reschedule();
+
+// Wake-lock & visibility based reschedule
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) reschedule();
+});
+</script>
+</body>
+</html>
